@@ -15,7 +15,7 @@ namespace Ivory.TesteEstagio.CampoMinado
         public static void AbreSeguras(CampoMinado campo, List<(int,int)> indices)
         {
             List<(int, int)> semBomba = indices.Where(x => !Bombas.Any(y => x == y)).ToList();
-            for(var i = 0; i < semBomba.Count; i++)
+            for (var i = 0; i < semBomba.Count; i++)
             {
                 campo.Abrir(semBomba[i].Item1+1, semBomba[i].Item2+1);
             }
@@ -69,7 +69,7 @@ namespace Ivory.TesteEstagio.CampoMinado
         static bool ComparaBombas(int x, List<(int, int)> lista)
         {
             int quantbomba = 0;
-            for(int i = 0; i < lista.Count; i++)
+            for (var i = 0; i < lista.Count; i++)
             {
                 if (Bombas.Contains((lista[i].Item1, lista[i].Item2)))
                 {
