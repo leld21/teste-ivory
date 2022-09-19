@@ -7,28 +7,33 @@ namespace Ivory.TesteEstagio.CampoMinado
 {
     class Program
     {
+        // Lista com as posições das bombas encontradas.
+        static private List<(int, int)> Bombas = new List<(int, int)>();
 
-        static private List<(int,int)> Bombas = new List<(int, int)>();
-        public static void AbreSeguras (CampoMinado campo, List<(int,int)> indices)
+        // AbreSeguras recebe como parâmetro o objeto do CampoMinado e uma lista de índices(posicoes)
+        // que após as bombas serem removidas, chama a função Abrir() para cada uma das posições.
+        public static void AbreSeguras(CampoMinado campo, List<(int,int)> indices)
         {
             List<(int, int)> semBomba = indices.Where(x => !Bombas.Any(y => x == y)).ToList();
-            for(int i=0;i<semBomba.Count; i++)
+            for(var i = 0; i < semBomba.Count; i++)
             {
                 campo.Abrir(semBomba[i].Item1+1, semBomba[i].Item2+1);
             }
         }
 
-        public static List<(int, int)> AchaIndicesAdjacentes(string[] arr, int linha, int coluna)
+        // AchaIndicesAdjacentes retorna apenas os indices Adjacentes a um elemento da matriz.
+        public static List<(int, int)> AchaIndicesAdjacentes(int posx, int posy)
         {
-            int linhas = 9,colunas = 9;
+            int linhas = 9;
+            int colunas = 9;
             List<(int, int)> resultado = new List<(int, int)>();
 
-            for (int j = linha - 1; j <= linha + 1; j++)
+            for (var j = posx - 1; j <= posx + 1; j++)
             {
 
-                for (int i = coluna - 1; i <= coluna + 1; i++)
+                for (var i = posy - 1; i <= posy + 1; i++)
                 {
-                    if (i >= 0 && j >= 0 && i < colunas && j < linhas && !(j == linha && i == coluna))
+                    if (i >= 0 && j >= 0 && i < colunas && j < linhas && !(j == posx && i == posy))
                     {
                         resultado.Add((j, i));
                     }
@@ -36,17 +41,21 @@ namespace Ivory.TesteEstagio.CampoMinado
             }
             return resultado;
         }
-        public static List<(char, int, int)> AchaAdjacentes(string[] arr, int linha, int coluna)
-        {
-            int linhas = 9, colunas = 9;
-            List<(char,int,int)> resultado = new List<(char, int, int)>();
 
-            for (int j = linha - 1; j <= linha + 1; j++)
+        // AchaAdjacentes retorna uma tripla com os caracteres e posições adjacentes
+        // a um elemento da matriz.
+        public static List<(char, int, int)> AchaAdjacentes(string[] arr, int posx, int posy)
+        {
+            int linhas = 9;
+            int colunas = 9;
+            List<(char, int, int)> resultado = new List<(char, int, int)>();
+
+            for (var j = posx - 1; j <= posx + 1; j++)
             {
 
-                for (int i = coluna - 1; i <= coluna + 1; i++)
+                for (var i = posy - 1; i <= posy + 1; i++)
                 {
-                    if (i >= 0 && j >= 0 && i < colunas && j < linhas && !(j == linha && i == coluna))
+                    if (i >= 0 && j >= 0 && i < colunas && j < linhas && !(j == posx && i == posy))
                     {
                         resultado.Add((arr[j][i], j, i));
                     }
@@ -55,6 +64,8 @@ namespace Ivory.TesteEstagio.CampoMinado
             return resultado;
         }
 
+        // ComparaBombas é uma função auxiliar que retorna true se a quantidade de bombas 
+        // adjacentes a um elemento da matriz é igual a seu número.
         static bool ComparaBombas(int x, List<(int, int)> lista)
         {
             int quantbomba = 0;
@@ -75,24 +86,29 @@ namespace Ivory.TesteEstagio.CampoMinado
             }
         }
 
-        static void AnalisaBombas(CampoMinado campo, int x, int y, bool secundario)
+        // AnalisaBombas é a função principal do algoritmo, recebe a posição que será checada e dependendo de seu conteúdo
+        // realiza ações diferentes, se for 0, apenas retorna, se for 1-3, primeiro checa se a quantidade de '-' adjacentes a si
+        // é igual a seu número e se for, adiciona a posição dos '-' à lista de bomba, e caso não seja, checa se já existe na
+        // lista de bombas quantidade suficiente de bombas adjacentes a ele com ComparaBombas() e caso haja chama AbreSeguros()
+        // para abrir as posições seguras. E no caso de ser um '-', o algoritmo analisa seus adjacentes de forma recursiva, ignorando
+        // caso seu adjacentes seja outro '-', realizando uma forma de backtracking.
+        static void AnalisaBombas(CampoMinado campo, int x, int y)
         {
             string[] matriz = campo.Tabuleiro.Split("\r\n");
             var adjacentes = AchaAdjacentes(matriz, x, y);
-            var indicesadj = AchaIndicesAdjacentes(matriz, x, y);
+            var indicesadj = AchaIndicesAdjacentes(x, y);
             List<int> listaIndice = new List<int>();
 
             if (matriz[x][y] == '-')
             {
-                if (secundario == true)
-                {
-                    return;
-                }
                 if (!Bombas.Contains((x, y)))
                 {
-                    for (int i = 0; i < indicesadj.Count; i++)
+                    for (var i = 0; i < indicesadj.Count; i++)
                     {
-                        AnalisaBombas(campo, indicesadj[i].Item1, indicesadj[i].Item2, true);
+                        if (!(matriz[indicesadj[i].Item1][indicesadj[i].Item2] == '-'))
+                        {
+                            AnalisaBombas(campo, indicesadj[i].Item1, indicesadj[i].Item2);
+                        }
                     }
                 }
             }
@@ -125,13 +141,14 @@ namespace Ivory.TesteEstagio.CampoMinado
         {
             var campoMinado = new CampoMinado();
             Console.WriteLine("Início do jogo\n=========");
+            Console.WriteLine("Status {0} \n", campoMinado.JogoStatus);
             Console.WriteLine(campoMinado.Tabuleiro);
             Console.WriteLine();
-            for (int i = 0; i < 9; i++)
+            for (var i = 0; i < 9; i++)
             {
-                for (int j = 0; j < 9; j++)
+                for (var j = 0; j < 9; j++)
                 {
-                    AnalisaBombas(campoMinado, i, j, false);
+                    AnalisaBombas(campoMinado, i, j);
                     if (campoMinado.JogoStatus == 1)
                     {
                         break;
@@ -139,8 +156,13 @@ namespace Ivory.TesteEstagio.CampoMinado
                 }
             }
             Console.WriteLine("Resultado\n=========");
-            Console.WriteLine(campoMinado.JogoStatus);
+            Console.WriteLine("Status {0} \n", campoMinado.JogoStatus);
             Console.WriteLine(campoMinado.Tabuleiro);
+            Console.WriteLine("\nBOMBAS:\n");
+            foreach(var bomba in Bombas)
+            {
+                Console.WriteLine("({0},{1})", bomba.Item1 + 1, bomba.Item2 + 1);
+            }
         }
     }
 }
