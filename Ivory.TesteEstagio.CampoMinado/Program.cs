@@ -9,6 +9,7 @@ namespace Ivory.TesteEstagio.CampoMinado
     {
         // Lista com as posições das bombas encontradas.
         static private List<(int, int)> Bombas = new List<(int, int)>();
+        static private int passos = 1;
 
         // AbreSeguras recebe como parâmetro o objeto do CampoMinado e uma lista de índices(posicoes)
         // que após as bombas serem removidas, chama a função Abrir() para cada uma das posições.
@@ -18,6 +19,10 @@ namespace Ivory.TesteEstagio.CampoMinado
             for (var i = 0; i < semBomba.Count; i++)
             {
                 campo.Abrir(semBomba[i].Item1+1, semBomba[i].Item2+1);
+                Console.WriteLine("Passo {0}",passos);
+                Console.WriteLine(campo.Tabuleiro);
+                Console.WriteLine();
+                passos++;
             }
         }
 
@@ -131,7 +136,8 @@ namespace Ivory.TesteEstagio.CampoMinado
                 }
                 else if (ComparaBombas((matriz[x][y]-'0'), indicesadj))
                 {
-                    AbreSeguras(campo, indicesadj);
+                    var indicesDosFechados = indicesadj.FindAll(x => matriz[x.Item1][x.Item2] == '-');
+                    AbreSeguras(campo, indicesDosFechados);
                 }
             }
         }
